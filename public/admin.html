@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head><title>Admin Panel</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="card wide">
+  <h2>🛡️ Admin Panel — All Users</h2>
+  <div id="table"></div>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+<script>
+async function loadAll() {
+  const res = await fetch('/all-users');
+  const data = await res.json();
+  if (!data.success) { window.location.href = 'index.html'; return; }
+  const rows = data.users.map(u => `
+    <tr>
+      <td>${u.name}</td><td>${u.age}</td><td>${u.college}</td>
+      <td>${u.phone}</td><td>${u.aadhaar}</td><td>${u.username}</td>
+    </tr>`).join('');
+  document.getElementById('table').innerHTML = `
+    <table>
+      <tr><th>Name</th><th>Age</th><th>College</th><th>Phone</th><th>Aadhaar</th><th>Username</th></tr>
+      ${rows}
+    </table>`;
+}
+async function logout() {
+  await fetch('/logout', { method: 'POST' });
+  window.location.href = 'index.html';
+}
+loadAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head><title>Register</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="card">
+  <h2>📝 Register</h2>
+  <input type="text" id="name" placeholder="Full Name">
+  <input type="number" id="age" placeholder="Age">
+  <input type="text" id="college" placeholder="College Name">
+  <input type="text" id="phone" placeholder="Phone Number (10 digits)" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')">
+  <input type="text" id="aadhaar" placeholder="Aadhaar Number (12 digits)" maxlength="12" oninput="this.value=this.value.replace(/\D/g,'')">
+  <input type="text" id="username" placeholder="Choose a Username">
+  <input type="password" id="password" placeholder="Create Password">
+  <button onclick="register()">Register</button>
+  <p class="msg" id="msg"></p>
+  <div class="link"><a href="index.html">Already registered? Login</a></div>
+</div>
+<script>
+async function register() {
+  const body = {
+    name: document.getElementById('name').value,
+    age: document.getElementById('age').value,
+    college: document.getElementById('college').value,
+    phone: document.getElementById('phone').value,
+    aadhaar: document.getElementById('aadhaar').value,
+    username: document.getElementById('username').value,
+    password: document.getElementById('password').value,
+  };
+  if (body.phone.length !== 10) {
+    document.getElementById('msg').textContent = 'Phone must be exactly 10 digits';
+    return;
+  }
+  if (body.aadhaar.length !== 12) {
+    document.getElementById('msg').textContent = 'Aadhaar must be exactly 12 digits';
+    return;
+  }
+  const res = await fetch('/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  const msg = document.getElementById('msg');
+  msg.textContent = data.message;
+  msg.className = data.success ? 'msg success' : 'msg';
+  if (data.success) setTimeout(() => window.location.href = 'index.html', 1500);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head><title>My Dashboard</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="card">
+  <h2>👤 My Details</h2>
+  <div id="info"></div>
+
+  <button onclick="toggleEdit()" id="editBtn" style="margin-top:1rem;">✏️ Edit Details</button>
+
+  <div id="editForm" style="display:none; margin-top:1rem;">
+    <h3 style="margin-bottom:1rem;">Edit Your Details</h3>
+    <input type="text" id="eName" placeholder="Full Name">
+    <input type="number" id="eAge" placeholder="Age">
+    <input type="text" id="eCollege" placeholder="College Name">
+
+    <input type="text" id="ePhone" placeholder="Phone Number (10 digits)" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')">
+    <input type="text" id="eAadhaar" placeholder="Aadhaar Number (12 digits)" maxlength="12" oninput="this.value=this.value.replace(/\D/g,'')">
+
+    <button onclick="saveChanges()">💾 Save Changes</button>
+    <p class="msg" id="editMsg"></p>
+  </div>
+
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<script>
+let currentData = {};
+
+async function loadData() {
+  const res = await fetch('/my-data');
+  const data = await res.json();
+  if (!data.success) { window.location.href = 'index.html'; return; }
+  currentData = data.user;
+  showTable(data.user);
+}
+
+function showTable(u) {
+  document.getElementById('info').innerHTML = `
+    <table>
+      <tr><th>Field</th><th>Value</th></tr>
+      <tr><td>Name</td><td>${u.name}</td></tr>
+      <tr><td>Age</td><td>${u.age}</td></tr>
+      <tr><td>College</td><td>${u.college}</td></tr>
+      <tr><td>Phone</td><td>${u.phone}</td></tr>
+      <tr><td>Aadhaar</td><td>${u.aadhaar}</td></tr>
+      <tr><td>Username</td><td>${u.username}</td></tr>
+    </table>`;
+}
+
+function toggleEdit() {
+  const form = document.getElementById('editForm');
+  const isHidden = form.style.display === 'none';
+
+  if (isHidden) {
+    // Fill form with current values
+    document.getElementById('eName').value = currentData.name;
+    document.getElementById('eAge').value = currentData.age;
+    document.getElementById('eCollege').value = currentData.college;
+    document.getElementById('ePhone').value = currentData.phone;
+    document.getElementById('eAadhaar').value = currentData.aadhaar;
+    form.style.display = 'block';
+    document.getElementById('editBtn').textContent = '✖ Cancel';
+  } else {
+    form.style.display = 'none';
+    document.getElementById('editBtn').textContent = '✏️ Edit Details';
+  }
+}
+
+async function saveChanges() {
+  const body = {
+    name: document.getElementById('eName').value,
+    age: document.getElementById('eAge').value,
+    college: document.getElementById('eCollege').value,
+    phone: document.getElementById('ePhone').value,
+    aadhaar: document.getElementById('eAadhaar').value,
+  };
+  if (body.phone.length !== 10) {
+    document.getElementById('editMsg').textContent = 'Phone must be exactly 10 digits';
+    return;
+  }
+  if (body.aadhaar.length !== 12) {
+    document.getElementById('editMsg').textContent = 'Aadhaar must be exactly 12 digits';
+    return;
+  }
+  const res = await fetch('/update', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  const data = await res.json();
+  const msg = document.getElementById('editMsg');
+  msg.textContent = data.message;
+  msg.className = data.success ? 'msg success' : 'msg';
+
+  if (data.success) {
+    currentData = { ...currentData, ...body };
+    showTable(currentData);
+    setTimeout(() => {
+      toggleEdit();
+      msg.textContent = '';
+    }, 1500);
+  }
+}
+
+async function logout() {
+  await fetch('/logout', { method: 'POST' });
+  window.location.href = 'index.html';
+}
+
+loadData();
+</script>
+</body>
+</html>
